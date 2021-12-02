@@ -1,0 +1,44 @@
+#cloud-config
+network:
+  version: 2
+  ethernets:
+    ens160:
+      dhcp4: true
+ntp:
+  enabled: true
+  ntp_client: chrony
+  servers:
+    - <ntp_server_url_or_ip>
+  config:
+    confpath: /etc/chrony/chrony.conf
+    check_exe: chronyd
+    packages:
+      - chrony
+    service_name: chrony
+    template: |
+      ## template:jinja
+      {% if pools %}# pools
+      {% endif %}
+      {% for pool in pools -%}
+      pool {{pool}} iburst
+      {% endfor %}
+      {%- if servers %}# servers
+      {% endif %}
+      {% for server in servers -%}
+      server {{server}} iburst
+      {% endfor %}
+      # This directive specify the location of the file containing ID/key pairs for
+      keyfile /etc/chrony/chrony.keys
+      driftfile /var/lib/chrony/chrony.drift
+      logdir /var/log/chrony
+      maxupdateskew 100.0
+      rtcsync
+      makestep 1 3
+      minsamples 32
+      maxslewrate 500
+      corrtimeratio 100
+      maxdrift 500
+      makestep 0.128 -1
+      maxchange 1000 1 1
+      maxclockerror 15
+      maxdistance 16.0
